@@ -1,12 +1,49 @@
+from typing import TYPE_CHECKING
 import numpy as np
+import numpy.typing as npt
 from numba import njit
 from .utils import inverse_interp_aprime_point_numba
 
+if TYPE_CHECKING:
+    from .setting import Setting
+
 
 @njit
-def update_distribution_numba(mu_dist_box, policy_fun_box, h_dist, a_grid, P, NJ, Nl, Na):
+def update_distribution_numba(
+    mu_dist_box: npt.NDArray[np.floating],
+    policy_fun_box: npt.NDArray[np.floating],
+    h_dist: npt.NDArray[np.floating],
+    a_grid: npt.NDArray[np.floating],
+    P: npt.NDArray[np.floating],
+    NJ: int,
+    Nl: int,
+    Na: int
+) -> None:
     """
     分布を前向きに更新する（numba最適化版）
+    
+    Parameters
+    ----------
+    mu_dist_box : npt.NDArray[np.floating]
+        人口分布配列 (NJ, Nl, Na)
+    policy_fun_box : npt.NDArray[np.floating]
+        政策関数配列（実数値） (NJ, Nl, Na)
+    h_dist : npt.NDArray[np.floating]
+        年齢別人口分布 (NJ,)
+    a_grid : npt.NDArray[np.floating]
+        今期資産グリッド (Na,)
+    P : npt.NDArray[np.floating]
+        生産性遷移確率行列 (Nl, Nl)
+    NJ : int
+        年齢数
+    Nl : int
+        生産性グリッド数
+    Na : int
+        今期資産グリッド数
+        
+    Notes
+    -----
+    この関数は配列を直接変更します（in-place operation）
     """
     # すべての状態分布mu_distを0に初期化
     mu_dist_box.fill(0.0)
@@ -39,8 +76,24 @@ def update_distribution_numba(mu_dist_box, policy_fun_box, h_dist, a_grid, P, NJ
                     mu_dist_box[h + 1, j_l, i_opt2] += mu * pij * weight_2
 
 
-def update_distribution(hp, mu_dist_box, policy_fun_box, h_dist):
+def update_distribution(
+    hp: 'Setting',
+    mu_dist_box: npt.NDArray[np.floating],
+    policy_fun_box: npt.NDArray[np.floating],
+    h_dist: npt.NDArray[np.floating]
+) -> None:
     """
     分布を前向きに更新する（hpインスタンス使用版）
+    
+    Parameters
+    ----------
+    hp : Setting
+        OLGモデル設定インスタンス
+    mu_dist_box : npt.NDArray[np.floating]
+        人口分布配列 (NJ, Nl, Na)
+    policy_fun_box : npt.NDArray[np.floating]
+        政策関数配列（実数値） (NJ, Nl, Na)
+    h_dist : npt.NDArray[np.floating]
+        年齢別人口分布 (NJ,)
     """
     update_distribution_numba(mu_dist_box, policy_fun_box, h_dist, hp.a_grid, hp.P, hp.NJ, hp.Nl, hp.Na)
