@@ -1,14 +1,70 @@
+from typing import TYPE_CHECKING
 import numpy as np
+import numpy.typing as npt
 from numba import njit
 from .utils import inverse_interp_aprime_point_numba
 
+if TYPE_CHECKING:
+    from .setting import Setting
+
 
 @njit
-def solve_household_backward_numba(value_fun_box, policy_fun_box, optaprime_index_box,
-                                   y_list, a_grid, aprime_grid, P, 
-                                   r, beta, gamma, NJ, Nl, Na, Naprime, Njw):
+def solve_household_backward_numba(
+    value_fun_box: npt.NDArray[np.floating],
+    policy_fun_box: npt.NDArray[np.floating], 
+    optaprime_index_box: npt.NDArray[np.int_],
+    y_list: npt.NDArray[np.floating],
+    a_grid: npt.NDArray[np.floating],
+    aprime_grid: npt.NDArray[np.floating],
+    P: npt.NDArray[np.floating],
+    r: float,
+    beta: float, 
+    gamma: float,
+    NJ: int,
+    Nl: int,
+    Na: int,
+    Naprime: int,
+    Njw: int
+) -> None:
     """
     家計の最適化問題を後ろ向きに解く（numba最適化版）
+    
+    Parameters
+    ----------
+    value_fun_box : npt.NDArray[np.floating]
+        価値関数配列 (NJ, Nl, Na)
+    policy_fun_box : npt.NDArray[np.floating]
+        政策関数配列（実数値） (NJ, Nl, Na)
+    optaprime_index_box : npt.NDArray[np.int_]
+        政策関数配列（インデックス） (NJ, Nl, Na)
+    y_list : npt.NDArray[np.floating]
+        所得配列 (NJ, Nl)
+    a_grid : npt.NDArray[np.floating]
+        今期資産グリッド (Na,)
+    aprime_grid : npt.NDArray[np.floating]
+        次期資産グリッド (Naprime,)
+    P : npt.NDArray[np.floating]
+        生産性遷移確率行列 (Nl, Nl)
+    r : float
+        利子率
+    beta : float
+        割引因子
+    gamma : float
+        相対的リスク回避度
+    NJ : int
+        年齢数
+    Nl : int
+        生産性グリッド数
+    Na : int
+        今期資産グリッド数
+    Naprime : int
+        次期資産グリッド数
+    Njw : int
+        労働期間
+        
+    Notes
+    -----
+    この関数は配列を直接変更します（in-place operation）
     """
     # 最終期（年齢NJ-1）の政策関数、価値関数を求める
     for i_l in range(Nl):
@@ -69,9 +125,31 @@ def solve_household_backward_numba(value_fun_box, policy_fun_box, optaprime_inde
                     policy_fun_box[h, i_l, i_a] = aprime_grid[opt_index]
 
 
-def solve_household_backward(hp, value_fun_box, policy_fun_box, optaprime_index_box, y_list, r):
+def solve_household_backward(
+    hp: 'Setting',
+    value_fun_box: npt.NDArray[np.floating],
+    policy_fun_box: npt.NDArray[np.floating],
+    optaprime_index_box: npt.NDArray[np.int_],
+    y_list: npt.NDArray[np.floating],
+    r: float
+) -> None:
     """
     家計の最適化問題を後ろ向きに解く（hpインスタンス使用版）
+    
+    Parameters
+    ----------
+    hp : Setting
+        OLGモデル設定インスタンス
+    value_fun_box : npt.NDArray[np.floating]
+        価値関数配列 (NJ, Nl, Na)
+    policy_fun_box : npt.NDArray[np.floating]
+        政策関数配列（実数値） (NJ, Nl, Na)
+    optaprime_index_box : npt.NDArray[np.int_]
+        政策関数配列（インデックス） (NJ, Nl, Na)
+    y_list : npt.NDArray[np.floating]
+        所得配列 (NJ, Nl)
+    r : float
+        利子率
     """
     solve_household_backward_numba(
         value_fun_box, policy_fun_box, optaprime_index_box,
