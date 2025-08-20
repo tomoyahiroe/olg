@@ -1,15 +1,28 @@
+from typing import TYPE_CHECKING
 import numpy as np
+import numpy.typing as npt
 import matplotlib.pyplot as plt
 
+if TYPE_CHECKING:
+    from .setting import Setting
 
-def plot_asset_path(hp, mu_dist_box, policy_fun_box):
+
+def plot_asset_path(
+    hp: 'Setting',
+    mu_dist_box: npt.NDArray[np.floating],
+    policy_fun_box: npt.NDArray[np.floating]
+) -> None:
     """
     Plot asset paths for high and low productivity agents (consumption-normalized version)
     
-    Parameters:
-    - hp: Setting instance with model parameters
-    - mu_dist_box: Population distribution [age, skill, asset]
-    - policy_fun_box: Policy function [age, skill, asset]
+    Parameters
+    ----------
+    hp : Setting
+        OLGモデル設定インスタンス
+    mu_dist_box : npt.NDArray[np.floating]
+        人口分布配列 (NJ, Nl, Na)
+    policy_fun_box : npt.NDArray[np.floating]
+        政策関数配列（実数値） (NJ, Nl, Na)
     """
     # First, recalculate necessary economic variables
     h_dist = np.ones(hp.NJ) / hp.NJ
