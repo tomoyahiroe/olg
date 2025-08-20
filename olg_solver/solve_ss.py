@@ -1,5 +1,6 @@
 import numpy as np
 import time
+from typing import Optional
 from .setting import Setting
 from .household_solver import solve_household_backward
 from .distribution_updater import update_distribution
@@ -7,7 +8,7 @@ from .asset_supply import calculate_asset_supply
 from .plot_asset_path import plot_asset_path
 
 
-def solve_ss(hp: Setting = None):
+def solve_ss(hp: Optional[Setting] = None) -> float:
     """
     定常状態を計算する関数
     
