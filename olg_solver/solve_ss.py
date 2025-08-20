@@ -7,17 +7,23 @@ from .asset_supply import calculate_asset_supply
 from .plot_asset_path import plot_asset_path
 
 
-def solve_ss():
+def solve_ss(hp: Setting = None):
     """
-    メイン関数
-    ここでは、OLGモデルの設定を初期化し、必要な計算を行います。
+    定常状態を計算する関数
     
-    Returns:
-    float: 収束した資本ストック K
+    Parameters
+    ----------
+    hp : Setting, optional
+        OLGモデルの設定インスタンス。Noneの場合はデフォルト設定を使用。
+    
+    Returns
+    -------
+    float
+        収束した資本ストック K
     """
-    # numba最適化されたメインループ（hpインスタンス使用版）
-    #hp = Setting(NJ = 10, Njw = 7, Na = 50, Naprime = 1000)
-    hp = Setting()
+    # Settingインスタンスが渡されない場合はデフォルト設定を使用
+    if hp is None:
+        hp = Setting()
 
     # 繰り返しに入る前の準備
     # 年齢×スキル×資産,この三次元のようなイメージの箱を作る

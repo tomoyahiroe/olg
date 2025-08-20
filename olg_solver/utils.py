@@ -1,12 +1,32 @@
+from typing import Tuple, TYPE_CHECKING
 import numpy as np
 from numba import njit
 
+if TYPE_CHECKING:
+    from .setting import Setting
+
 
 @njit
-def maliar_grid(a_min, a_max, N, theta):
+def maliar_grid(a_min: float, a_max: float, N: int, theta: float) -> np.ndarray:
     """
     Maliarグリッド関数
     低資産域により多くのグリッドポイントを配置する非線形グリッド
+    
+    Parameters
+    ----------
+    a_min : float
+        グリッドの最小値
+    a_max : float
+        グリッドの最大値
+    N : int
+        グリッドポイント数
+    theta : float
+        グリッドの曲率パラメータ（1.0で等間隔、>1.0で低資産域により密）
+        
+    Returns
+    -------
+    np.ndarray
+        Maliarグリッド配列
     """
     a_grid = np.empty(N)
     for i in range(1, N+1):
@@ -15,18 +35,33 @@ def maliar_grid(a_min, a_max, N, theta):
 
 
 @njit
-def inverse_interp_aprime_point_numba(a_grid, aprime_value):
+def inverse_interp_aprime_point_numba(
+    a_grid: np.ndarray, 
+    aprime_value: float
+) -> Tuple[float, int, int, float, float]:
     """
     1つの aprime_value を、グローバルな a_grid 上で線形補間により逆補間する。
-    Parameters:
-    - a_grid: 資産グリッド（numpy array）
-    - aprime_value: スカラー値（次期資産の1点）
-    Returns:
-    - aprime_interp: 線形補間により a_grid 上で再構成された aprime_value
-    - idx: 左のインデックス
-    - idx+1: 右のインデックス
-    - weight_L: 左の重み
-    - weight_R: 右の重み
+    
+    Parameters
+    ----------
+    a_grid : np.ndarray
+        資産グリッド（単調増加）
+    aprime_value : float
+        補間したい次期資産の値
+        
+    Returns
+    -------
+    Tuple[float, int, int, float, float]
+        - aprime_interp: 線形補間により a_grid 上で再構成された aprime_value
+        - idx_left: 左のインデックス
+        - idx_right: 右のインデックス  
+        - weight_left: 左の重み
+        - weight_right: 右の重み
+        
+    Notes
+    -----
+    weight_left + weight_right = 1.0
+    aprime_interp = weight_left * a_grid[idx_left] + weight_right * a_grid[idx_right]
     """
     if aprime_value <= a_grid[0]:
         return a_grid[0], 0, 1, 1.0, 0.0
@@ -49,12 +84,24 @@ def inverse_interp_aprime_point_numba(a_grid, aprime_value):
         return aprime_interp, idx, idx + 1, weight_L, weight_R
 
 
-def inverse_interp_aprime_point(hp, aprime_value):
+def inverse_interp_aprime_point(hp: "Setting", aprime_value: float) -> Tuple[float, int, int, float, float]:
     """
     1つの aprime_value を、グローバルな a_grid 上で線形補間により逆補間する。
-    Parameters:
-    - aprime_value: スカラー値（次期資産の1点）
-    Returns:
-    - aprime_interp: 線形補間により a_grid 上で再構成された aprime_value
+    
+    Parameters
+    ----------
+    hp : Setting
+        OLGモデルの設定オブジェクト
+    aprime_value : float
+        補間したい次期資産の値
+        
+    Returns
+    -------
+    Tuple[float, int, int, float, float]
+        inverse_interp_aprime_point_numba の戻り値と同じ
+        
+    See Also
+    --------
+    inverse_interp_aprime_point_numba : numba最適化版の実装
     """
     return inverse_interp_aprime_point_numba(hp.a_grid, aprime_value)
