@@ -1,5 +1,6 @@
 from typing import Callable
 import numpy as np
+import numpy.typing as npt
 from numba import njit
 from .utils import maliar_grid
 
@@ -10,46 +11,63 @@ class Setting:
     このクラスは、OLG（Overlapping Generations）モデルにおける主要なパラメータを管理します。
     割引因子、リスク回避度、資本分配率、減耗率、年金の所得代替率、モデル期間、労働・引退開始年齢、初期資産、収束判定閾値などを属性として保持します。
     また、CRRA型効用関数および限界効用関数を定義し、人口分布および各年齢の労働生産性を初期化します。
-    Attributes:
-        beta (float): 割引因子
-        gamma (float): 相対的リスク回避度（異時点間の代替弾力性の逆数）
-        alpha (float): 資本分配率
-        delta (float): 固定資本減耗率
-        psi (float): 年金の平均所得代替率
-        J (int): モデルの期間（世代数）
-        jw (int): 勤労期の初期年齢
-        jr (int): 引退期の初期年齢
-        a1 (float): 初期資産
-        tol (float): 収束判定の閾値
-        utility (callable): CRRA型効用関数
-        mutility (callable): 限界効用関数
-        mu (np.ndarray): 各年齢の人口分布
-        theta (np.ndarray): 各年齢の労働生産性
     """
+    
+    # 基本パラメータ（整数型）
+    NJ: int          # モデルの期間（世代数）20歳から80歳まで
+    Njw: int         # 働く期間 20歳から64歳まで働く
+    Nl: int          # 生産性のグリッドの数 {high,low}の2種類
+    Na: int          # 今期の資産グリッドの数
+    Naprime: int     # 来季の資産グリッドの数
+    maxiter: int     # 最大繰り返し回数
+    
+    # 基本パラメータ（浮動小数点型）
+    l_dif: float     # 生産性の違い
+    a_max: float     # 資本グリッドの最大値
+    a_min: float     # 資本グリッドの最小値
+    alpha: float     # 資本分配率
+    beta: float      # 割引因子
+    gamma: float     # 相対的リスク回避度（異時点間の代替弾力性の逆数）
+    delta: float     # 固定資本減耗率
+    psi: float       # 年金の平均所得代替率
+    K0: float        # 初期資産
+    tol: float       # 収束判定の閾値
+    lambdaR: float   # 資本更新調整係数
+    
+    # グリッド配列
+    h_grid: npt.NDArray[np.floating]       # 年齢グリッド
+    l_grid: npt.NDArray[np.floating]       # 生産性グリッド
+    a_grid: npt.NDArray[np.floating]       # 今期資産グリッド
+    aprime_grid: npt.NDArray[np.floating]  # 次期資産グリッド
+    P: npt.NDArray[np.floating]            # 生産性遷移確率行列
+    
+    # 効用関数
+    utility: Callable[[float], float]     # CRRA型効用関数
+    mutility: Callable[[float], float]    # 限界効用関数
 
     def __init__(
         self,
-        NJ      = 61,        # モデルの期間,20歳から80歳まで生きる
-        Njw     = 45,        # 働く期間,20歳から64歳まで働く
-        #Njr     = 20,        # 勤労期の初期,20歳から働く 使ってない
-        Nl      = 2,         # 生産性のグリッドの数, {high,low}の2種類
-        l_dif   = 0.3,       # 生産性の違い（6.3設定に合わせて0.3→0.2）
-        Na      = 201,       # 今期の資産グリッドの数
-        a_max   = 25,        # 資本グリッドの最大値
-        a_min   = 0,         # 資本グリッドの最小値
-        Naprime = 8001,      # 来季の資産グリッドの数
-        alpha   = 0.4,       # 資本分配率
-        beta    = 0.98,      # 割引因子
-        gamma   = 1,         # 相対的リスク回避度(異時点間の代替弾力性の逆数)
-        delta   = 0.08,      # 固定資本減耗率
-        psi     = 0.5,       # 年金の平均所得代替率
-        K0      = 6.0,       # 初期資産
-        tol     = 1e-4,      # 収束判定の閾値
-        maxiter = 2000,      # 最大繰り返し回数
-        lambdaR = 0.2,       # 資本更新調整係数
-        # jw    = 20,        # 勤労期の初期 j work
-        # jr    = 45,        # 引退期の初期 j retire
-    ):
+        NJ: int = 61,        # モデルの期間,20歳から80歳まで生きる
+        Njw: int = 45,       # 働く期間,20歳から64歳まで働く
+        #Njr: int = 20,      # 勤労期の初期,20歳から働く 使ってない
+        Nl: int = 2,         # 生産性のグリッドの数, {high,low}の2種類
+        l_dif: float = 0.3,  # 生産性の違い（6.3設定に合わせて0.3→0.2）
+        Na: int = 201,       # 今期の資産グリッドの数
+        a_max: float = 25,   # 資本グリッドの最大値
+        a_min: float = 0,    # 資本グリッドの最小値
+        Naprime: int = 8001, # 来季の資産グリッドの数
+        alpha: float = 0.4,  # 資本分配率
+        beta: float = 0.98,  # 割引因子
+        gamma: float = 1,    # 相対的リスク回避度(異時点間の代替弾力性の逆数)
+        delta: float = 0.08, # 固定資本減耗率
+        psi: float = 0.5,    # 年金の平均所得代替率
+        K0: float = 6.0,     # 初期資産
+        tol: float = 1e-4,   # 収束判定の閾値
+        maxiter: int = 2000, # 最大繰り返し回数
+        lambdaR: float = 0.2,# 資本更新調整係数
+        # jw: int = 20,      # 勤労期の初期 j work
+        # jr: int = 45,      # 引退期の初期 j retire
+    ) -> None:
 
         # パラメータを設定する
         self.NJ      = NJ
@@ -96,10 +114,11 @@ class Setting:
         self.P = P
 
         # CRRA型効用関数と限界効用を定義する
-        gamma = self.gamma
-        if gamma == 1:
-            self.utility = np.log
+        if self.gamma == 1:
+            # 対数効用の場合
+            self.utility: Callable[[float], float] = np.log
             self.mutility: Callable[[float], float] = njit(lambda x: 1 / x)
         else:
-            self.utility = njit(lambda x: x ** (1 - gamma) / (1 - gamma))
-            self.mutility = njit(lambda x: x ** (-gamma))
+            # CRRA効用の場合（self.gammaを直接参照）
+            self.utility = njit(lambda x: x ** (1 - self.gamma) / (1 - self.gamma))
+            self.mutility = njit(lambda x: x ** (-self.gamma))
