@@ -6,9 +6,10 @@ from .household_solver import solve_household_backward
 from .distribution_updater import update_distribution
 from .asset_supply import calculate_asset_supply
 from .plot_asset_path import plot_asset_path
+from .steady_state_result import SteadyStateResult
 
 
-def solve_ss(hp: Optional[Setting] = None) -> float:
+def solve_ss(hp: Optional[Setting] = None) -> SteadyStateResult:
     """
     定常状態を計算する関数
     
@@ -19,8 +20,8 @@ def solve_ss(hp: Optional[Setting] = None) -> float:
     
     Returns
     -------
-    float
-        収束した資本ストック K
+    SteadyStateResult
+        定常状態計算の完全な結果（資本ストック、価値関数、政策関数、分布など）
     """
     # Settingインスタンスが渡されない場合はデフォルト設定を使用
     if hp is None:
@@ -52,6 +53,9 @@ def solve_ss(hp: Optional[Setting] = None) -> float:
     errm = 1.0
     diff_iteration = 0
     K = hp.K0
+    
+    # y_listを初期化（リンターエラー回避のため）
+    y_list = y_matrix.copy()
 
     print("numba最適化されたOLGモデルを実行中...")
     start_time = time.time()
@@ -97,14 +101,41 @@ def solve_ss(hp: Optional[Setting] = None) -> float:
             print(f"Iteration {diff_iteration}: market_diff = {market_diff:.6e}, errm = {errm:.6e}")
 
     end_time = time.time()
-    print(f"\\n計算完了! 実行時間: {end_time - start_time:.2f}秒")
+    computation_time = end_time - start_time
+    
+    print(f"\\n計算完了! 実行時間: {computation_time:.2f}秒")
     print(f"総イテレーション数: {diff_iteration}")
     print(f"最終市場差: {market_diff:.6e}")
     print(f"最終人口合計誤差: {errm:.6e}")
     print(f"収束した資本ストック K = {K:.4f}")
     
+    # 最終的な均衡価格を計算
+    r_final = hp.alpha * (K / L) ** (hp.alpha - 1) - hp.delta
+    w_final = (1 - hp.alpha) * (K / L) ** hp.alpha
+    p_final = hp.psi * w_final
+    
     # 資産パスの推移をプロット
     plot_asset_path(hp, mu_dist_box, policy_fun_box)
     
-    # 収束した資本ストックを返す
-    return K
+    # 結果をSteadyStateResultオブジェクトで返す
+    result = SteadyStateResult(
+        K=K,
+        r=r_final,
+        w=w_final,
+        p=p_final,
+        tau=tau,
+        L=L,
+        value_fun_box=value_fun_box.copy(),
+        policy_fun_box=policy_fun_box.copy(),
+        optaprime_index_box=optaprime_index_box.copy(),
+        mu_dist_box=mu_dist_box.copy(),
+        y_list=y_list.copy(),
+        h_dist=h_dist.copy(),
+        iterations=diff_iteration,
+        market_diff=market_diff,
+        errm=errm,
+        computation_time=computation_time,
+        hp=hp
+    )
+    
+    return result

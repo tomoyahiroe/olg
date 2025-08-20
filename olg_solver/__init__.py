@@ -12,6 +12,7 @@ from .distribution_updater import update_distribution
 from .asset_supply import calculate_asset_supply
 from .plot_asset_path import plot_asset_path
 from .utils import maliar_grid, inverse_interp_aprime_point, inverse_interp_aprime_point_numba
+from .steady_state_result import SteadyStateResult
 
 __all__ = [
     'Setting',
@@ -22,5 +23,6 @@ __all__ = [
     'plot_asset_path',
     'maliar_grid',
     'inverse_interp_aprime_point',
-    'inverse_interp_aprime_point_numba'
+    'inverse_interp_aprime_point_numba',
+    'SteadyStateResult'
 ]
