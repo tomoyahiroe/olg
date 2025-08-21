@@ -62,7 +62,7 @@ class Setting:
         delta: float = 0.08, # 固定資本減耗率
         psi: float = 0.5,    # 年金の平均所得代替率
         K0: float = 6.0,     # 初期資産
-        tol: float = 1e-4,   # 収束判定の閾値
+        tol: float = 1e-3,   # 収束判定の閾値
         maxiter: int = 2000, # 最大繰り返し回数
         lambdaR: float = 0.2,# 資本更新調整係数
         # jw: int = 20,      # 勤労期の初期 j work

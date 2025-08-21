@@ -33,7 +33,7 @@ class TransitionSetting:
         TT: int = 25,         # 政策変更の収束期間
         psi_ini: float = 0.5, # 初期定常状態の所得代替率
         psi_fin: float = 0.25,# 最終定常状態の所得代替率
-        errKTol: float = 1e-3,# 移行過程用の市場クリア誤差許容度
+        errKTol: float = 1e-4,# 移行過程用の市場クリア誤差許容度
         maxiterTR: int = 300, # 移行過程用の最大繰り返し回数
         adjK_TR: float = 0.05,# 移行過程用の資本更新調整係数
         
