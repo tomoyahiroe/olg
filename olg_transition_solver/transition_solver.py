@@ -28,16 +28,18 @@ def solve_transition_path(tr_setting, setting, K_path, opt_indexes, aprimes, V_f
         
     Returns
     -------
-    np.ndarray
-        収束した資本パス
+    tuple
+        (収束した資本パス, 価値関数情報)
+        価値関数情報は {'V_init': 改革時点価値関数, 'V_start': 各期出生時価値} の辞書
     """
     K_path_current = K_path.copy()
+    value_functions = None  # 価値関数情報を保存
     
     for iteration in range(tr_setting.maxiterTR):
         print(f"Iteration {iteration + 1}")
         
         # a. T→1期（後ろ向き）: 政策関数を計算
-        solve_backward_transition(
+        value_functions = solve_backward_transition(
             tr_setting, setting, K_path_current, opt_indexes, aprimes, V_fin
         )
         
@@ -62,4 +64,4 @@ def solve_transition_path(tr_setting, setting, K_path, opt_indexes, aprimes, V_f
         # 資本パスを更新
         K_path_current = K_path_new
     
-    return K_path_current
+    return K_path_current, value_functions
