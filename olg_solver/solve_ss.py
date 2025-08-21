@@ -115,7 +115,7 @@ def solve_ss(hp: Optional[Setting] = None) -> SteadyStateResult:
     p_final = hp.psi * w_final
     
     # 資産パスの推移をプロット
-    plot_asset_path(hp, mu_dist_box, policy_fun_box)
+    # plot_asset_path(hp, mu_dist_box, policy_fun_box)
     
     # 結果をSteadyStateResultオブジェクトで返す
     result = SteadyStateResult(

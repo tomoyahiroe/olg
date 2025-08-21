@@ -6,6 +6,7 @@ including steady state computation and transition path analysis.
 """
 
 from .setting import Setting
+from .transition_setting import TransitionSetting
 from .solve_ss import solve_ss
 from .household_solver import solve_household_backward
 from .distribution_updater import update_distribution
@@ -16,6 +17,7 @@ from .steady_state_result import SteadyStateResult
 
 __all__ = [
     'Setting',
+    'TransitionSetting',
     'solve_ss',
     'solve_household_backward',
     'update_distribution', 
