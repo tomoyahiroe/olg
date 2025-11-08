@@ -124,7 +124,7 @@ def solve_backward_transition(tr_setting, setting, K_path, opt_indexes, aprimes,
     
     # 価値関数保存用の配列
     V_init = None  # 改革時点の価値関数
-    V_start = np.zeros((tr_setting.NT, setting.Nl))  # 各期の出生時価値
+    V_start = np.zeros((tr_setting.NT, setting.NJ, setting.Nl, setting.Na))  # 各期の出生時価値
     
     # 最初にt+1期の価値関数として最終定常状態の価値関数を設定
     value_fun_box = V_fin.copy()
@@ -163,13 +163,13 @@ def solve_backward_transition(tr_setting, setting, K_path, opt_indexes, aprimes,
         if t == 0:  # 改革時点（t=0）の価値関数
             V_init = vfun_current.copy()
         
-        # 各期の出生時価値を保存（20歳、資産0での価値）
-        V_start[t, :] = vfun_current[0, :, 0]
+        # 各期の価値関数を保存
+        V_start[t, :, :, :] = vfun_current.copy()
         
         # 次のループのために価値関数を更新
         value_fun_box = vfun_current.copy()
     
     return {
         'V_init': V_init,      # 改革時点の価値関数 (NJ, Nl, Na)
-        'V_start': V_start     # 各期の出生時価値 (NT, Nl)
+        'V_start': V_start     # 各期の出生時価値 (T, Nj, Nl, Na)
     }

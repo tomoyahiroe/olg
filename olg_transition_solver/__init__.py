@@ -9,11 +9,15 @@ from .backward_transition import solve_backward_transition
 from .forward_transition import solve_forward_transition
 from .market_clearing import check_market_clearing
 from .transition_solver import solve_transition_path
+from .main import run_transition_analysis, create_policy_function_boxes, run_default_transition_analysis
 
 __all__ = [
     'create_capital_guess',
     'solve_backward_transition', 
     'solve_forward_transition',
     'check_market_clearing',
-    'solve_transition_path'
+    'solve_transition_path',
+    'run_transition_analysis',
+    'create_policy_function_boxes',
+    'run_default_transition_analysis'
 ]

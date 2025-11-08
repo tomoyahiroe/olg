@@ -1,90 +1,105 @@
-import numpy as np
-import matplotlib.pyplot as plt
+"""
+OLG Model Integration Module
 
-from olg_solver import solve_ss, Setting, SteadyStateResult, TransitionSetting
-from olg_transition_solver import create_capital_guess, solve_transition_path
+This module provides a simple interface to run OLG transition analysis
+using the functions defined in olg_transition_solver.
+"""
 
-def main():
-    print("=== OLG移行過程分析 ===")
-    
-    # 移行過程の設定を作成
-    tr_setting = TransitionSetting(
-        NT=50,    # テスト用に短い移行期間
-        TT=5,    # テスト用に短い政策変更期間
-        psi_ini=0.5,  # 初期所得代替率
-        psi_fin=0.25  # 最終所得代替率
-    )
-    
-    # 移行過程設定のサマリーを表示
-    tr_setting.print_transition_summary()
-    
-    # 初期・最終定常状態用のSetting作成（軽量設定）
-    print("\\n=== 定常状態用設定の作成 ===")
-    initial_setting, final_setting = tr_setting.create_ss_settings(
-        Na=101,        # 軽量テスト用
-        Naprime=1001   # 軽量テスト用
-    )
-    
-    print(f"初期定常状態設定: ψ = {initial_setting.psi:.3f}")
-    print(f"最終定常状態設定: ψ = {final_setting.psi:.3f}")
-    
-    # 1. 初期・最終定常状態の計算
-    print("\\n=== 初期定常状態の計算 ===")
-    print("初期定常状態を計算中...")
-    initial_result = solve_ss(initial_setting)
-    mu_ini = initial_result.mu_dist_box
-    K_ini = initial_result.K
-    
-    print("\\n=== 最終定常状態の計算 ===")
-    print("最終定常状態を計算中...")
-    final_result = solve_ss(final_setting)
-    V_fin = final_result.value_fun_box
-    K_fin = final_result.K
-    
-    # 2. 移行過程の初期設定
-    print("\\n=== 移行過程の初期設定 ===")
-    K_path = create_capital_guess(tr_setting, K_ini, K_fin)
-    
-    # 2.i. 政策関数とそのインデックスの箱を用意
-    opt_indexes, aprimes = create_policy_function_boxes(tr_setting, initial_setting)
+import pickle
+import os
+from datetime import datetime
+from olg_solver.transition_setting import TransitionSetting
+from olg_transition_solver import (
+    run_transition_analysis,
+)
 
-    # 2.ii. 次のステップを収束するまで繰り返す
-    print("\\n=== 移行過程の反復計算 ===")
-    converged_K_path = solve_transition_path(
-        tr_setting, initial_setting, K_path, opt_indexes, aprimes, V_fin, mu_ini
-    )
-    
-    return tr_setting, initial_result, final_result, converged_K_path, opt_indexes, aprimes
 
-def create_policy_function_boxes(tr_setting, setting):
+def save_results_to_pkl(results, prefix="results", timestamp=True):
     """
-    移行過程の政策関数とそのインデックスの箱を作成
-    - opt_indexes: 政策関数インデックス (NT, NJ, Nl, Na)
-    - aprimes: 政策関数実数値 (NT, NJ, Nl, Na)
-    
+    結果をpickleファイルとして保存
+
     Parameters
     ----------
-    tr_setting : TransitionSetting
-        移行過程設定
-    setting : Setting
-        定常状態設定（次元情報取得用）
-        
-    Returns
-    -------
-    tuple[np.ndarray, np.ndarray]
-        (opt_indexes, aprimes) - 政策関数インデックスと実数値の箱
+    results : tuple
+        (initial_result, final_result, K_path, opt_indexes, aprimes, value_functions)
+    prefix : str
+        ファイル名のプレフィックス
+    timestamp : bool
+        タイムスタンプをファイル名に含めるか
     """
-    # 期間×年齢×スキル×資産の4次元配列
-    shape = (tr_setting.NT, setting.NJ, setting.Nl, setting.Na)
-    
-    # 政策関数インデックスの箱（整数型）
-    opt_indexes = np.zeros(shape, dtype=np.int32)
-    
-    # 政策関数実数値の箱（浮動小数点型）
-    aprimes = np.zeros(shape, dtype=np.float64)
-    
-    return opt_indexes, aprimes
+    # 結果をアンパック
+    initial_result, final_result, K_path, opt_indexes, aprimes, value_functions = (
+        results
+    )
+
+    # タイムスタンプ付きのディレクトリを作成
+    if timestamp:
+        timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_dir = f"results_{timestamp_str}"
+    else:
+        output_dir = "results"
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    # 各結果をpklファイルとして保存
+    components = {
+        "initial_result": initial_result,
+        "final_result": final_result,
+        "K_path": K_path,
+        "opt_indexes": opt_indexes,
+        "aprimes": aprimes,
+        "value_functions": value_functions,
+    }
+
+    saved_files = []
+    for name, data in components.items():
+        filename = f"{output_dir}/{prefix}_{name}.pkl"
+        with open(filename, "wb") as f:
+            pickle.dump(data, f)
+        saved_files.append(filename)
+        print(f"Saved: {filename}")
+
+    # 全体も一つのファイルとして保存
+    full_filename = f"{output_dir}/{prefix}_full.pkl"
+    with open(full_filename, "wb") as f:
+        pickle.dump(results, f)
+    saved_files.append(full_filename)
+    print(f"Saved: {full_filename}")
+
+    return saved_files
+
+
+def run_custom_transition_analysis():
+    """カスタム設定で移行過程分析を実行"""
+
+    # カスタム移行過程設定を作成
+    tr_setting = TransitionSetting(
+        NT=100,  # 移行期間
+        TT=25,  # 政策変更期間
+        psi_ini=0.5,  # 初期所得代替率
+        psi_fin=0.000000001,  # 最終所得代替率
+    )
+
+    # 初期・最終定常状態用のSetting作成
+    initial_setting, final_setting = tr_setting.create_ss_settings(
+        Na=101, Naprime=2001  # 資産グリッド数  # 政策関数用資産グリッド数
+    )
+
+    # 移行過程分析を実行
+    results = run_transition_analysis(tr_setting, initial_setting, final_setting)
+
+    return results
 
 
 if __name__ == "__main__":
-    main()
+    results = run_custom_transition_analysis()
+
+    print("\n=== カスタム設定結果の保存 ===")
+    saved_files = save_results_to_pkl(results, prefix="psi_50to0_by25T")
+
+    print("\n=== 分析完了 ===")
+    print("結果は results_default, results_custom に格納され、")
+    print("以下のpklファイルとして保存されました:")
+    print("\nカスタム設定:")
+    for f in saved_files:
+        print(f"  {f}")
