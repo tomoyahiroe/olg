@@ -1,0 +1,30 @@
+{
+    "name": "OLG Development",
+    "dockerComposeFile": "../docker-compose.yml",
+    "service": "olg-dev",
+    "workspaceFolder": "/app",
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "python.defaultInterpreterPath": "/app/.venv/bin/python",
+                "python.terminal.activateEnvironment": false,
+                "ruff.path": ["/app/.venv/bin/ruff"],
+                "ruff.lint.enable": true,
+                "ruff.format.enable": true,
+                "[python]": {
+                    "editor.defaultFormatter": "charliermarsh.ruff",
+                    "editor.formatOnSave": true,
+                    "editor.codeActionsOnSave": {
+                        "source.fixAll.ruff": "explicit"
+                    }
+                }
+            },
+            "extensions": [
+                "ms-python.python",
+                "charliermarsh.ruff",
+                "ms-toolsai.jupyter"
+            ]
+        }
+    },
+    "postCreateCommand": "echo 'DevContainer ready for OLG development'"
+}

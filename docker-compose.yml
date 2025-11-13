@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  olg-dev:
+    build: .
+    volumes:
+      - .:/app
+    working_dir: /app/src
+    environment:
+      - PYTHONPATH=/app
+    # コンテナを起動状態に保つ
+    command: tail -f /dev/null
+    # 使用例:
+    # docker-compose exec olg-dev python main.py
+    # docker-compose exec olg-dev python -m pytest
+    # docker-compose exec olg-dev bash
