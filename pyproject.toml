@@ -17,6 +17,7 @@ dependencies = [
     "quantecon",
     "ruff",
     "seaborn>=0.13.2",
+    "pre-commit",
 ]
 
 [tool.setuptools]
