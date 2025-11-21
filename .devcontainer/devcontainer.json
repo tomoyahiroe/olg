@@ -7,7 +7,7 @@
         "vscode": {
             "settings": {
                 "python.defaultInterpreterPath": "/app/.venv/bin/python",
-                "python.terminal.activateEnvironment": false,
+                "python.terminal.activateEnvironment": true,
                 "ruff.path": ["/app/.venv/bin/ruff"],
                 "ruff.lint.enable": true,
                 "ruff.format.enable": true,
