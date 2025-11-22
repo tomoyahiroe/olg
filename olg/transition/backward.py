@@ -115,8 +115,8 @@ def solve_backward_transition(tr_setting, setting, K_path, opt_indexes, aprimes,
 
     Returns
     -------
-    dict
-        価値関数情報 {'V_init': 改革時点価値関数, 'V_start': 各期出生時価値}
+    np.ndarray
+        価値関数配列 (T, NJ, Nl, Na) - 各期の価値関数
     """
     # 年齢別人口分布（定常状態と同じ）
     L = setting.Njw / setting.NJ  # 簡略化
@@ -143,10 +143,9 @@ def solve_backward_transition(tr_setting, setting, K_path, opt_indexes, aprimes,
     )
 
     # 価値関数保存用の配列
-    V_init = None  # 改革時点の価値関数
     V_start = np.zeros(
         (tr_setting.NT, setting.NJ, setting.Nl, setting.Na)
-    )  # 各期の出生時価値
+    )  # 各期の価値関数
 
     # 最初にt+1期の価値関数として最終定常状態の価値関数を設定
     value_fun_box = V_fin.copy()
@@ -194,16 +193,9 @@ def solve_backward_transition(tr_setting, setting, K_path, opt_indexes, aprimes,
         opt_indexes[t] = afun_index_current.copy()
 
         # 価値関数を保存
-        if t == 0:  # 改革時点（t=0）の価値関数
-            V_init = vfun_current.copy()
-
-        # 各期の価値関数を保存
         V_start[t, :, :, :] = vfun_current.copy()
 
         # 次のループのために価値関数を更新
         value_fun_box = vfun_current.copy()
 
-    return {
-        "V_init": V_init,  # 改革時点の価値関数 (NJ, Nl, Na)
-        "V_start": V_start,  # 各期の出生時価値 (T, Nj, Nl, Na)
-    }
+    return V_start

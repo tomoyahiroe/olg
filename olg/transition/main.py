@@ -5,10 +5,10 @@ OLG移行過程分析のメイン実行モジュール
 """
 
 import numpy as np
-from ..ss.setting import Setting
-from .setting import TransitionSetting
+
 from ..ss.solve_ss import solve_ss
 from .capital_guess import create_capital_guess
+from .setting import TransitionSetting
 from .transition_solver import solve_transition_path
 
 
@@ -35,7 +35,9 @@ def create_policy_function_boxes(tr_setting, setting):
     return opt_indexes, aprimes
 
 
-def run_transition_analysis(tr_setting, initial_setting, final_setting):
+def run_transition_analysis(
+    tr_setting, initial_setting, final_setting, K_path_guess=None
+):
     """
     移行過程分析を実行
 
@@ -78,8 +80,10 @@ def run_transition_analysis(tr_setting, initial_setting, final_setting):
 
     # 2. 移行過程の初期設定
     print("\n=== 移行過程の初期設定 ===")
-    # K_path = create_capital_guess(tr_setting, K_ini, K_fin)
-    K_path = np.load("K_path.npy")  # TODO: 直す
+    if K_path_guess is not None:
+        K_path = K_path_guess
+    else:
+        K_path = create_capital_guess(tr_setting, K_ini, K_fin)
 
     # 政策関数とそのインデックスの箱を用意
     opt_indexes, aprimes = create_policy_function_boxes(tr_setting, initial_setting)

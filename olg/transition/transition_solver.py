@@ -31,11 +31,11 @@ def solve_transition_path(
     Returns
     -------
     tuple
-        (収束した資本パス, 価値関数情報)
-        価値関数情報は {'V_init': 改革時点価値関数, 'V_start': 各期出生時価値} の辞書
+        (収束した資本パス, 価値関数)
+        価値関数は (T, NJ, Nl, Na) の配列
     """
     K_path_current = K_path.copy()
-    value_functions = None  # 価値関数情報を保存
+    value_functions = None  # 価値関数を保存
 
     for iteration in range(tr_setting.maxiterTR):
         print(f"Iteration {iteration + 1}")

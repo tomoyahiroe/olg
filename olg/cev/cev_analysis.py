@@ -5,7 +5,7 @@ CEV分析の統合機能を提供するモジュール
 """
 
 import numpy as np
-from typing import Dict, Any, Tuple, Optional
+from typing import Dict, Any, Optional
 from .cev_calculator import calculate_cev
 from .cev_plotter import plot_cev_by_age, plot_cev_by_cohort
 
@@ -13,7 +13,7 @@ from .cev_plotter import plot_cev_by_age, plot_cev_by_cohort
 def run_cev_analysis(
     tr_setting: Any,
     initial_result: Any,
-    value_functions: Dict[str, np.ndarray],
+    value_functions: np.ndarray,
     mu_dists: np.ndarray,
     plot_period: int = 0,
     plot_age: int = 0,
@@ -30,8 +30,8 @@ def run_cev_analysis(
         移行過程設定
     initial_result : SteadyStateResult
         初期定常状態の結果
-    value_functions : dict
-        価値関数情報 {'V_init': 改革時点価値関数, 'V_start': 各期出生時価値}
+    value_functions : np.ndarray
+        価値関数 (T, NJ, Nl, Na)
     mu_dists : np.ndarray
         移行過程の分布パス (NT, NJ, Nl, Na)
     plot_period : int, default=0

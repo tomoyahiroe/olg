@@ -1,11 +1,12 @@
-import numpy as np
 import time
 from typing import Optional
-from .setting import Setting
-from .household_solver import solve_household_backward
-from .distribution_updater import update_distribution
+
+import numpy as np
+
 from .asset_supply import calculate_asset_supply
-from .plot_asset_path import plot_asset_path
+from .distribution_updater import update_distribution
+from .household_solver import solve_household_backward
+from .setting import Setting
 from .steady_state_result import SteadyStateResult
 
 
@@ -48,9 +49,7 @@ def solve_ss(hp: Optional[Setting] = None) -> SteadyStateResult:
     tau = hp.psi * np.sum(h_dist[hp.Njw :]) / np.sum(h_dist[: hp.Njw])
 
     # 6. 総労働供給
-    L = np.sum(
-        h_dist[: hp.Njw]
-    )  # 生産性を入れる？、今回の平均生産性は1だから気持ちは1で割っている,tauchenでやる場合には調整が必要
+    L = np.sum(h_dist[: hp.Njw])
 
     # 初期化
     market_diff = 1.0
@@ -61,7 +60,6 @@ def solve_ss(hp: Optional[Setting] = None) -> SteadyStateResult:
     # y_listを初期化（リンターエラー回避のため）
     y_list = y_matrix.copy()
 
-    print("numba最適化されたOLGモデルを実行中...")
     start_time = time.time()
 
     while (market_diff > hp.tol or errm > hp.tol) and diff_iteration < hp.maxiter:
@@ -105,7 +103,8 @@ def solve_ss(hp: Optional[Setting] = None) -> SteadyStateResult:
         # 進捗表示
         if diff_iteration % 5 == 0 or diff_iteration <= 5:
             print(
-                f"Iteration {diff_iteration}: market_diff = {market_diff:.6e}, errm = {errm:.6e}"
+                f"Iteration {diff_iteration}: market_diff = {market_diff:.6e}, "
+                f"errm = {errm:.6e}"
             )
 
     end_time = time.time()

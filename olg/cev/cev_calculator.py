@@ -6,13 +6,13 @@ CEV Calculator Module
 
 import numpy as np
 import numpy.typing as npt
-from typing import Dict, Any
+from typing import Any
 
 
 def calculate_cev(
     tr_setting: Any,
     initial_result: Any,
-    value_functions: Dict[str, npt.NDArray],
+    value_functions: npt.NDArray,
     mu_dists: npt.NDArray,
 ) -> npt.NDArray:
     """
@@ -24,8 +24,8 @@ def calculate_cev(
         移行過程設定
     initial_result : SteadyStateResult
         初期定常状態の結果
-    value_functions : dict
-        価値関数情報 {'V_init': 改革時点価値関数, 'V_start': 各期出生時価値}
+    value_functions : np.ndarray
+        価値関数 (T, NJ, Nl, Na)
     mu_dists : np.ndarray
         移行過程の分布パス (NT, NJ, Nl, Na)
 
@@ -56,8 +56,7 @@ def calculate_cev(
                     if total_mass_trans > 0 and total_mass_init > 0:
                         vf_trans_avg = (
                             np.sum(
-                                value_functions["V_init"][h, i_l, :]
-                                * mu_dists[t, h, i_l, :]
+                                value_functions[0, h, i_l, :] * mu_dists[t, h, i_l, :]
                             )
                             / total_mass_trans
                         )
@@ -81,7 +80,7 @@ def calculate_cev(
                     if total_mass_trans > 0 and total_mass_init > 0:
                         vf_trans_avg = (
                             np.sum(
-                                value_functions["V_start"][t - 1, h, i_l, :]
+                                value_functions[t - 1, h, i_l, :]
                                 * mu_dists[t, h, i_l, :]
                             )
                             / total_mass_trans

@@ -3,7 +3,7 @@
   "python.analysis.autoImportCompletions": true,
   "python.analysis.diagnosticMode": "workspace",
   "[python]": {
-    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.defaultFormatter": "charliermarsh.ruff",
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
       "source.organizeImports": "explicit"
