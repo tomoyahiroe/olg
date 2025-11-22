@@ -31,11 +31,13 @@ def solve_transition_path(
     Returns
     -------
     tuple
-        (収束した資本パス, 価値関数)
+        (収束した資本パス, 価値関数, 状態分布)
         価値関数は (T, NJ, Nl, Na) の配列
+        状態分布は (T, NJ, Nl, Na) の配列
     """
     K_path_current = K_path.copy()
     value_functions = None  # 価値関数を保存
+    mu_dist_path = None  # 状態分布を保存
 
     for iteration in range(tr_setting.maxiterTR):
         print(f"Iteration {iteration + 1}")
@@ -61,9 +63,10 @@ def solve_transition_path(
         if max_error < tr_setting.errKTol:
             print(f"  収束しました！（誤差: {max_error:.6e}）")
             K_path_current = K_path_new
+            # 最終反復での分布を保存
             break
 
         # 資本パスを更新
         K_path_current = K_path_new
 
-    return K_path_current, value_functions
+    return K_path_current, value_functions, mu_dist_path

@@ -8,7 +8,6 @@ import numpy as np
 
 from ..ss.solve_ss import solve_ss
 from .capital_guess import create_capital_guess
-from .setting import TransitionSetting
 from .transition_solver import solve_transition_path
 
 
@@ -53,13 +52,13 @@ def run_transition_analysis(
     Returns
     -------
     tuple
-        (initial_result, final_result, K_path, opt_indexes, aprimes, value_functions)
         - initial_result: 初期定常状態の結果
         - final_result: 最終定常状態の結果
         - K_path: 収束した資本パス
         - opt_indexes: 政策関数インデックス
         - aprimes: 政策関数実数値
-        - value_functions: 価値関数情報
+        - value_functions: 価値関数
+        - mu_dist_path: 状態分布
     """
     print("=== OLG移行過程分析 ===")
 
@@ -88,53 +87,18 @@ def run_transition_analysis(
     # 政策関数とそのインデックスの箱を用意
     opt_indexes, aprimes = create_policy_function_boxes(tr_setting, initial_setting)
 
-    # 移行過程の反復計算（価値関数も取得）
+    # 移行過程の反復計算（価値関数と状態分布も取得）
     print("\n=== 移行過程の反復計算 ===")
-    converged_K_path, value_functions = solve_transition_path(
+    converged_K_path, value_functions, mu_dist_path = solve_transition_path(
         tr_setting, initial_setting, K_path, opt_indexes, aprimes, V_fin, mu_ini
     )
 
-    return (
-        initial_result,
-        final_result,
-        converged_K_path,
-        opt_indexes,
-        aprimes,
-        value_functions,
-    )
-
-
-def run_default_transition_analysis():
-    """
-    デフォルト設定で移行過程分析を実行
-
-    Returns
-    -------
-    tuple
-        run_transition_analysis()と同じ戻り値
-    """
-    # デフォルト移行過程設定を作成
-    tr_setting = TransitionSetting(
-        NT=100,  # 移行期間
-        TT=25,  # 政策変更期間
-        psi_ini=0.5,  # 初期所得代替率
-        psi_fin=0.25,  # 最終所得代替率
-    )
-
-    tr_setting.print_transition_summary()
-
-    # 初期・最終定常状態用のSetting作成
-    print("\n=== 定常状態用設定の作成 ===")
-    initial_setting, final_setting = tr_setting.create_ss_settings(
-        Na=101,
-        Naprime=2001,  # 資産グリッド数  # 政策関数用資産グリッド数
-    )
-
-    return run_transition_analysis(tr_setting, initial_setting, final_setting)
-
-
-if __name__ == "__main__":
-    # デフォルト設定で移行過程分析を実行
-    results = run_default_transition_analysis()
-    print("\n=== 分析完了 ===")
-    print("結果は results タプルに格納されました。")
+    return {
+        "initial_result": initial_result,
+        "final_result": final_result,
+        "converged_K_path": converged_K_path,
+        "opt_indexes": opt_indexes,
+        "aprimes": aprimes,
+        "value_functions": value_functions,
+        "mu_dist_path": mu_dist_path,
+    }

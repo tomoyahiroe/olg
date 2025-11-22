@@ -20,17 +20,28 @@ def save_results_to_pkl(results, prefix="results", timestamp=False):
 
     Parameters
     ----------
-    results : tuple
-        (initial_result, final_result, K_path, opt_indexes, aprimes, value_functions)
+    results : dict
+        結果辞書
+        - initial_result: 初期定常状態結果
+        - final_result: 最終定常状態結果
+        - converged_K_path: 収束した資本パス
+        - opt_indexes: 政策関数インデックス
+        - aprimes: 政策関数実数値
+        - value_functions: 価値関数
+        - mu_dist_path: 状態分布
     prefix : str
         ファイル名のプレフィックス
     timestamp : bool
         タイムスタンプをファイル名に含めるか
     """
-    # 結果をアンパック
-    initial_result, final_result, K_path, opt_indexes, aprimes, value_functions = (
-        results
-    )
+    # 結果辞書から各要素を取得
+    initial_result = results["initial_result"]
+    final_result = results["final_result"]
+    K_path = results["converged_K_path"]
+    opt_indexes = results["opt_indexes"]
+    aprimes = results["aprimes"]
+    value_functions = results["value_functions"]
+    mu_dist_path = results["mu_dist_path"]
 
     # タイムスタンプ付きのディレクトリを作成
     if timestamp:
@@ -49,6 +60,7 @@ def save_results_to_pkl(results, prefix="results", timestamp=False):
         "opt_indexes": opt_indexes,
         "aprimes": aprimes,
         "value_functions": value_functions,
+        "mu_dist_path": mu_dist_path,
     }
 
     saved_files = []
@@ -82,7 +94,8 @@ def run_custom_transition_analysis():
 
     # 初期・最終定常状態用のSetting作成
     initial_setting, final_setting = tr_setting.create_ss_settings(
-        Na=101, Naprime=2001  # 資産グリッド数  # 政策関数用資産グリッド数
+        Na=101,
+        Naprime=2001,  # 資産グリッド数  # 政策関数用資産グリッド数
     )
 
     # 移行過程分析を実行
