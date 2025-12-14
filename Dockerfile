@@ -2,7 +2,7 @@ FROM python:3.12
 
 WORKDIR /app
 
-# 必要なパッケージをインストール
+# 必要なパッケージと日本語フォントをインストール
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
@@ -10,8 +10,12 @@ RUN apt-get update && apt-get install -y \
     vim \
     curl \
     ca-certificates \
+    fonts-noto-cjk \
+    fonts-takao-gothic \
+    fontconfig \
  && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/* \
+ && fc-cache -fv
 
 # uv のインストール
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh

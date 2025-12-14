@@ -1,7 +1,8 @@
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
+
 import numpy as np
 import numpy.typing as npt
-from dataclasses import dataclass
 
 if TYPE_CHECKING:
     from .setting import Setting
@@ -39,19 +40,3 @@ class SteadyStateResult:
 
     # 設定情報
     hp: "Setting"  # 使用した設定インスタンス
-
-    def print_summary(self) -> None:
-        """計算結果のサマリーを表示"""
-        print(f"\n=== 定常状態計算結果 ===")
-        print(f"収束した資本ストック K = {self.K:.4f}")
-        print(f"均衡利子率 r = {self.r:.4f}")
-        print(f"均衡賃金率 w = {self.w:.4f}")
-        print(f"均衡年金 p = {self.p:.4f}")
-        print(f"均衡税率 τ = {self.tau:.4f}")
-        print(f"総労働供給 L = {self.L:.4f}")
-        print(f"")
-        print(f"計算統計:")
-        print(f"  反復回数: {self.iterations}")
-        print(f"  最終市場差: {self.market_diff:.6e}")
-        print(f"  最終人口合計誤差: {self.errm:.6e}")
-        print(f"  計算時間: {self.computation_time:.2f}秒")
