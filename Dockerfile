@@ -17,11 +17,9 @@ RUN apt-get update && apt-get install -y \
  && rm -rf /var/lib/apt/lists/* \
  && fc-cache -fv
 
-# uv のインストール
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# PATH に uv を追加
-ENV PATH="/root/.local/bin:$PATH"
+# uv のインストール（pipを使用）
+RUN pip install --no-cache-dir uv && \
+    uv --version
 
 # UV用の環境変数設定
 ENV UV_COMPILE_BYTECODE=1 \

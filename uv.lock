@@ -3490,7 +3490,7 @@ wheels = [
 ]
 
 [[package]]
-name = "olg-kitao-and-sunakawa-yamada-2024-chapter6"
+name = "olg-kitao-sunakawa-and-yamada-2024-chapter6"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
